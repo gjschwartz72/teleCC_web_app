@@ -1,0 +1,10 @@
+*.xlsx
+*.xls
+*.dat
+*.csv
+*.parquet
+*.sqlite
+*.db
+
+temp/
+data/

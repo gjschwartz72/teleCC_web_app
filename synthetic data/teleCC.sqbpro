@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="teleCC.sqlite" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="0"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="4908"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="patient_teleCC" custom_title="0" dock_id="3" table="4,14:mainpatient_teleCC"/><dock_state state="000000ff00000000fd0000000100000002000005bb0000038efc0100000003fb000000160064006f0063006b00420072006f00770073006500310100000000000005bb0000000000000000fb000000160064006f0063006b00420072006f00770073006500320100000000000005bb0000000000000000fb000000160064006f0063006b00420072006f00770073006500330100000000000005bb0000011900ffffff000002590000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="patient_teleCC" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="62"/><column index="2" value="37"/><column index="3" value="40"/><column index="4" value="80"/><column index="5" value="66"/><column index="6" value="121"/><column index="7" value="106"/><column index="8" value="103"/><column index="9" value="106"/><column index="10" value="117"/><column index="11" value="114"/><column index="12" value="117"/><column index="13" value="187"/><column index="14" value="187"/><column index="15" value="187"/><column index="16" value="189"/><column index="17" value="189"/><column index="18" value="189"/><column index="19" value="165"/><column index="20" value="165"/><column index="21" value="165"/><column index="22" value="167"/><column index="23" value="167"/><column index="24" value="167"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">drop table if exists patient_teleCC_state;
+
+create table patient_teleCC_state as
+select * 
+from patient_teleCC
+WHERE prediction_datetime = '2024-12-03 12:00:00';
+
+drop table if exists patient_teleCC_history_tmp;
+drop table if exists patient_teleCC_history;
+
+create table patient_teleCC_history_tmp as
+select PatientID, Sta6a, prediction_datetime, septic_shock_score, respiratory_score                                
+from patient_teleCC as t1
+where prediction_datetime &lt;= '2024-12-03 12:00:00';
+
+create table patient_teleCC_history as
+select * from 
+patient_teleCC_history_tmp as t1 join patient_teleCC_state as t2
+on t1.PatientID = t2.PatientID and t1.Sta6a = t2.Sta6a;
+
+drop table patient_teleCC_history_tmp;
+
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
