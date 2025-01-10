@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Splash Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Select a Station to Begin</h1>
+        <form action="/load_data/" method="POST">
+            <div class="station-list">
+                <label for="station">Select a Station:</label>
+                <select name="station_id" id="station" size="5" required>
+                    {% for station in stations %}
+                        <option value="{{ station.id }}">{{ station.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit">Load Patients</button>
+        </form>
+    </div>
+</body>
+</html>
