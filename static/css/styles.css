@@ -100,6 +100,64 @@ h1, h2 {
     text-align: center; /* Center-align the arrows if necessary */
 }
 
+th[colspan="2"] {
+    text-align: center;
+}
+
+.trend-icon {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.dropdown select {
+    font-size: 1em; /* Match text size */
+    height: auto; /* Adjust height to fit content */
+    padding: 2px 5px; /* Minimal padding */
+    border: 1px solid #ccc; /* Optional border styling */
+    border-radius: 4px; /* Rounded corners for modern look */
+    background-color: #fff; /* White background */
+    cursor: pointer; /* Change cursor to pointer */
+    box-shadow: none; /* Remove any default shadow */
+    width: auto; /* Prevent large width */
+    display: inline-block; /* Ensure it doesn't expand unnecessarily */
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #f9f9f9;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    min-width: 200px;
+}
+
+.dropdown-content a, .dropdown-content select {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content select {
+    width: 100%;
+    padding: 8px;
+}
+
+.dropdown-content a:hover, .dropdown-content select:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+
 /* Histories and Explainability Tables */
 #historiesTable, #explainabilityTable {
     margin-top: 20px;

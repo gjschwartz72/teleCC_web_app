@@ -14,6 +14,7 @@ def splash():
     # Dynamically populate the SelectField with station data
     #form.station_id.choices = [(station.station_number, station.station_name) for station in Station_lookup.query.all()]
     form.stations = Station_lookup.query.all()
+    cache['stations'] = form.stations
 
     if form.validate_on_submit():
         # Redirect to load_data route with the selected station ID
@@ -43,6 +44,7 @@ def load_data(station_id):
         'patient_list.html',
         station_name=station_name,
         patients=station_list_sorted,
+        stations = cache['stations'],
         prediction_datetime = prediction_datetime
     )
 
