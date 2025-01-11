@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        th[colspan="2"] {
+            text-align: center;
+        }
+        .trend-icon {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Patient List for Station {{ station_name }}, Last Prediction: {{ prediction_datetime.strftime('%m-%d-%Y %H:%M:%S') }}</h3>
+        <table id="patientTable">
+            <thead>
+                <tr>
+                    <th rowspan="2">Patient Name</th>
+                    <th rowspan="2">Room</th>
+                    <th colspan="2">Septic Shock</th>
+                    <th colspan="2">Respiratory Shock</th>
+                </tr>
+                <tr>
+                    <th>Level</th>
+                    <th>2-h Trend</th>
+                    <th>Level</th>
+                    <th>2-h Trend</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr onclick="loadPatientDetails({{ patient.patientID }})">
+                    <td>{{ patient.patientName }}</td>
+                    <td>{{ patient.room }}</td>
+                    <td class="{{ 'low' if patient.septic_shock_class == 0 else 'moderate' if patient.septic_shock_class == 1 else 'critical' }}">
+                        {{ 'Low' if patient.septic_shock_class == 0 else 'Moderate' if patient.septic_shock_class == 1 else 'Critical' }}
+                    </td>
+                    <td class="trend-icon">
+                        {{ '&#8596;' | safe if patient.septic_shock_trend == 0 else '&#8593;' | safe if patient.septic_shock_trend == 1 else '&#8595;' | safe}}
+                    </td>
+                    <td class="{{ 'low' if patient.respiratory_class == 0 else 'moderate' if patient.respiratory_class == 1 else 'critical' }}">
+                        {{ 'Low' if patient.respiratory_class == 0 else 'Moderate' if patient.respiratory_class == 1 else 'Critical' }}
+                    </td>
+                    <td class="trend-icon">
+                        {{ '&#8596;' | safe if patient.respiratory_trend == 0 else '&#8593;' | safe if patient.respiratory_trend == 1 else '&#8595;' | safe}}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Patient Histories</h2>
+        <table id="historiesTable">
+            <thead>
+                <tr>
+                    <th>Datetime</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- AJAX Populated -->
+            </tbody>
+        </table>
+
+        <h2>Explainability Values</h2>
+        <table id="explainabilityTable">
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Positive</th>
+                    <th>Negative</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- AJAX Populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function loadPatientDetails(patientID) {
+            $.ajax({
+                url: `/get_patient_details/${patientID}`,
+                method: 'GET',
+                success: function(data) {
+                    // Update histories table
+                    let historiesHTML = '';
+                    data.histories.forEach(history => {
+                        historiesHTML += `<tr>
+                            <td>${new Date(history.datetime).toLocaleString()}</td>
+                            <td>${history.value}</td>
+                        </tr>`;
+                    });
+                    $('#historiesTable tbody').html(historiesHTML);
+
+                    // Update explainability table
+                    let explainabilityHTML = '';
+                    data.explainability_values.forEach(expl => {
+                        explainabilityHTML += `<tr>
+                            <td>${expl.field_name}</td>
+                            <td>${expl.expl_pos}</td>
+                            <td>${expl.expl_neg}</td>
+                        </tr>`;
+                    });
+                    $('#explainabilityTable tbody').html(explainabilityHTML);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

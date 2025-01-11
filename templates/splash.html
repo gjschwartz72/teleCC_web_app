@@ -9,17 +9,31 @@
 <body>
     <div class="container">
         <h1>Select a Station to Begin</h1>
-        <form action="/load_data/" method="POST">
+        <!-- Form submission -->
+        <form method="GET" id="stationForm">
             <div class="station-list">
                 <label for="station">Select a Station:</label>
                 <select name="station_id" id="station" size="5" required>
-                    {% for station in stations %}
-                        <option value="{{ station.id }}">{{ station.name }}</option>
+                    {% for station in form.stations %}
+                        <option value="{{ station.station_number }}">{{ station.station_name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit">Load Patients</button>
+            <button type="button" onclick="submitForm()">Load Patients</button>
         </form>
     </div>
+    <script>
+        function submitForm() {
+            const stationId = document.getElementById('station').value;
+            
+            if (!stationId) {
+                alert("Please select a station!");
+                return;
+            }
+
+            window.location.href = 'http://localhost:5000/load_data/' + stationId
+
+        }
+    </script>
 </body>
 </html>

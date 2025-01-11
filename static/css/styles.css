@@ -1,3 +1,4 @@
+/* General Body Styling */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
@@ -6,11 +7,18 @@ body {
     padding: 20px;
 }
 
+/* Container Styling */
 .container {
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
+    text-align: left;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
 }
 
+/* Station List Styling */
 .station-list {
     margin: 20px 0;
 }
@@ -23,6 +31,7 @@ select {
     margin-bottom: 20px;
 }
 
+/* Button Styling */
 button {
     background-color: #007BFF;
     color: white;
@@ -30,8 +39,68 @@ button {
     padding: 10px 20px;
     cursor: pointer;
     font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
     background-color: #0056b3;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+    text-align: left;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 2px;
+}
+
+th {
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Class Cell Coloring */
+.low {
+    background-color: white;
+    color: black;
+}
+
+.moderate {
+    background-color: #30547C;
+    color: white;
+}
+
+.critical {
+    background-color: #b33329;
+    color: white;
+}
+
+/* Table Titles */
+h1, h2 {
+    font-size: 1.5em;
+    color: #208d5a;
+    margin-bottom: 10px;
+}
+
+.trend-icon {
+    font-size: 2.2em; /* Adjust font size as needed */
+    font-weight: bold; /* Make arrows bold */
+    text-align: center; /* Center-align the arrows if necessary */
+}
+
+/* Histories and Explainability Tables */
+#historiesTable, #explainabilityTable {
+    margin-top: 20px;
 }
