@@ -4,63 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Individual Patient Details</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .info-box {
+            border: 2px solid black;
+            padding: 20px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 10px;
+            width: 60%;
+            font-family: Arial, sans-serif;
+        }
+        .score-box {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            background-color: #d9534f; /* Red background for critical */
+            border: 1px solid black;
+            border-radius: 5px;
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            margin: 0 auto;
+            display: inline-block;
+        }
+        .info-text {
+            display: inline-block;
+            vertical-align: top;
+            padding-left: 20px;
+            width: calc(100% - 140px);
+        }
+        .info-text p {
+            margin: 5px 0;
+            font-size: 1.2em;
+        }
+        .protocol {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 1em;
+            list-style-type: disc;
+        }
+        .protocol p {
+            margin: 5px 0;
+            padding-left: 15px;
+        }
+    </style>
 </head>
 <body>
     <div id="patientDetails">
+        <div class="input-section">
+            <label for="patientIDInput">Enter Patient ID:</label>
+            <input type="number" id="patientIDInput" placeholder="Patient ID">
+            <button onclick="submitPatientID()">Submit</button>
+        </div>
+
         <div class="tabs">
             <button class="tab-button" onclick="openTab('septicShock')">Septic Shock</button>
-            <button class="tab-button" onclick="openTab('respiratoryShock')">Respiratory Shock</button>
         </div>
 
         <div id="septicShock" class="tab-content">
             <div class="info-box">
-                <div id="septicShockScore" class="score-box"></div>
-                <p id="septicShockInfo"></p>
-                <p id="septicShockPatientInfo"></p>
-                <p><strong>Protocol:</strong></p>
-                <p id="septicShockProtocol"></p>
-            </div>
-
-            <div class="explainability-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Variable</th>
-                            <th>Contribution</th>
-                        </tr>
-                    </thead>
-                    <tbody id="septicShockExplainability"></tbody>
-                </table>
-            </div>
-
-            <div class="history-plot">
-                <canvas id="septicShockChart"></canvas>
-            </div>
-        </div>
-
-        <div id="respiratoryShock" class="tab-content" style="display:none;">
-            <div class="info-box">
-                <div id="respiratoryShockScore" class="score-box"></div>
-                <p id="respiratoryShockInfo"></p>
-                <p id="respiratoryShockPatientInfo"></p>
-                <p><strong>Protocol:</strong></p>
-                <p id="respiratoryShockProtocol"></p>
-            </div>
-
-            <div class="explainability-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Variable</th>
-                            <th>Contribution</th>
-                        </tr>
-                    </thead>
-                    <tbody id="respiratoryShockExplainability"></tbody>
-                </table>
-            </div>
-
-            <div class="history-plot">
-                <canvas id="respiratoryShockChart"></canvas>
+                <div class="score-box" id="septicShockScore">78</div>
+                <div class="info-text">
+                    <p><strong id="septicShockClass">Critical</strong> Risk of Septic Shock in next 48 Hours</p>
+                    <p>As of <span id="septicShockDate">12-23 12:00 PM</span></p>
+                    <p id="septicShockPatientInfo">Patient: John Doe, Room 107</p>
+                </div>
+                <div class="protocol">
+                    <p><strong>Protocol:</strong></p>
+                    <p>• Method a ...</p>
+                    <p>• Method b ...</p>
+                    <p>• Method c ...</p>
+                    <p>• Method d ...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -73,36 +93,47 @@
             document.getElementById(tabName).style.display = 'block';
         }
 
+        function submitPatientID() {
+            const patientID = document.getElementById('patientIDInput').value;
+            if (patientID) {
+                loadPatientDetails(patientID);
+            } else {
+                alert('Please enter a valid Patient ID.');
+            }
+        }
+
         function loadPatientDetails(patientID) {
             $.ajax({
                 url: `/get_patient_details/${patientID}`,
                 method: 'GET',
                 success: function(data) {
-                    // Update Septic Shock Tab
-                    document.getElementById('septicShockScore').className = `score-box ${data.septic_shock_class}`;
-                    document.getElementById('septicShockScore').textContent = data.septic_shock_level;
-                    document.getElementById('septicShockInfo').textContent = `Critical risk of septic shock as of ${data.prediction_datetime}`;
+                    // Update Septic Shock Information Box
+                    const scoreBox = document.getElementById('septicShockScore');
+                    scoreBox.className = 'score-box';
+                    switch (data.septic_shock_class.toLowerCase()) {
+                        case 'low':
+                            scoreBox.style.backgroundColor = 'white';
+                            scoreBox.style.color = 'black';
+                            break;
+                        case 'moderate':
+                            scoreBox.style.backgroundColor = '#30547C';
+                            scoreBox.style.color = 'white';
+                            break;
+                        case 'critical':
+                            scoreBox.style.backgroundColor = '#b33329';
+                            scoreBox.style.color = 'white';
+                            break;
+                        default:
+                            scoreBox.style.backgroundColor = '#d9534f'; // Default color
+                            scoreBox.style.color = 'white';
+                    }
+                    document.getElementById('septicShockScore').textContent = `${data.septic_shock_score}`;
+                    document.getElementById('septicShockClass').textContent = data.septic_shock_class;
+                    document.getElementById('septicShockDate').textContent = data.prediction_datetime;
                     document.getElementById('septicShockPatientInfo').textContent = `Patient: ${data.patient_name}, Room ${data.room}`;
-                    document.getElementById('septicShockProtocol').textContent = data.septic_shock_protocol;
 
-                    let septicExplainabilityHTML = '';
-                    data.septic_shock_explainability.forEach(item => {
-                        septicExplainabilityHTML += `<tr><td>${item.variable}</td><td>${item.contribution}</td></tr>`;
-                    });
-                    document.getElementById('septicShockExplainability').innerHTML = septicExplainabilityHTML;
-
-                    // Update Respiratory Shock Tab
-                    document.getElementById('respiratoryShockScore').className = `score-box ${data.respiratory_class}`;
-                    document.getElementById('respiratoryShockScore').textContent = data.respiratory_level;
-                    document.getElementById('respiratoryShockInfo').textContent = `Critical risk of respiratory shock as of ${data.prediction_datetime}`;
-                    document.getElementById('respiratoryShockPatientInfo').textContent = `Patient: ${data.patient_name}, Room ${data.room}`;
-                    document.getElementById('respiratoryShockProtocol').textContent = data.respiratory_protocol;
-
-                    let respiratoryExplainabilityHTML = '';
-                    data.respiratory_shock_explainability.forEach(item => {
-                        respiratoryExplainabilityHTML += `<tr><td>${item.variable}</td><td>${item.contribution}</td></tr>`;
-                    });
-                    document.getElementById('respiratoryShockExplainability').innerHTML = respiratoryExplainabilityHTML;
+                    const protocolContent = data.septic_shock_protocol.split('\n').map(line => `<p>• ${line}</p>`).join('');
+                    document.querySelector('.protocol').innerHTML = `<p><strong>Protocol:</strong></p>${protocolContent}`;
                 }
             });
         }
