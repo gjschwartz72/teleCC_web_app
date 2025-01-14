@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Individual Patient Details</title>
+</head>
+<body>
+    <div id="patientDetails">
+        <div class="tabs">
+            <button class="tab-button" onclick="openTab('septicShock')">Septic Shock</button>
+            <button class="tab-button" onclick="openTab('respiratoryShock')">Respiratory Shock</button>
+        </div>
+
+        <div id="septicShock" class="tab-content">
+            <div class="info-box">
+                <div id="septicShockScore" class="score-box"></div>
+                <p id="septicShockInfo"></p>
+                <p id="septicShockPatientInfo"></p>
+                <p><strong>Protocol:</strong></p>
+                <p id="septicShockProtocol"></p>
+            </div>
+
+            <div class="explainability-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody id="septicShockExplainability"></tbody>
+                </table>
+            </div>
+
+            <div class="history-plot">
+                <canvas id="septicShockChart"></canvas>
+            </div>
+        </div>
+
+        <div id="respiratoryShock" class="tab-content" style="display:none;">
+            <div class="info-box">
+                <div id="respiratoryShockScore" class="score-box"></div>
+                <p id="respiratoryShockInfo"></p>
+                <p id="respiratoryShockPatientInfo"></p>
+                <p><strong>Protocol:</strong></p>
+                <p id="respiratoryShockProtocol"></p>
+            </div>
+
+            <div class="explainability-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody id="respiratoryShockExplainability"></tbody>
+                </table>
+            </div>
+
+            <div class="history-plot">
+                <canvas id="respiratoryShockChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            document.getElementById(tabName).style.display = 'block';
+        }
+
+        function loadPatientDetails(patientID) {
+            $.ajax({
+                url: `/get_patient_details/${patientID}`,
+                method: 'GET',
+                success: function(data) {
+                    // Update Septic Shock Tab
+                    document.getElementById('septicShockScore').className = `score-box ${data.septic_shock_class}`;
+                    document.getElementById('septicShockScore').textContent = data.septic_shock_level;
+                    document.getElementById('septicShockInfo').textContent = `Critical risk of septic shock as of ${data.prediction_datetime}`;
+                    document.getElementById('septicShockPatientInfo').textContent = `Patient: ${data.patient_name}, Room ${data.room}`;
+                    document.getElementById('septicShockProtocol').textContent = data.septic_shock_protocol;
+
+                    let septicExplainabilityHTML = '';
+                    data.septic_shock_explainability.forEach(item => {
+                        septicExplainabilityHTML += `<tr><td>${item.variable}</td><td>${item.contribution}</td></tr>`;
+                    });
+                    document.getElementById('septicShockExplainability').innerHTML = septicExplainabilityHTML;
+
+                    // Update Respiratory Shock Tab
+                    document.getElementById('respiratoryShockScore').className = `score-box ${data.respiratory_class}`;
+                    document.getElementById('respiratoryShockScore').textContent = data.respiratory_level;
+                    document.getElementById('respiratoryShockInfo').textContent = `Critical risk of respiratory shock as of ${data.prediction_datetime}`;
+                    document.getElementById('respiratoryShockPatientInfo').textContent = `Patient: ${data.patient_name}, Room ${data.room}`;
+                    document.getElementById('respiratoryShockProtocol').textContent = data.respiratory_protocol;
+
+                    let respiratoryExplainabilityHTML = '';
+                    data.respiratory_shock_explainability.forEach(item => {
+                        respiratoryExplainabilityHTML += `<tr><td>${item.variable}</td><td>${item.contribution}</td></tr>`;
+                    });
+                    document.getElementById('respiratoryShockExplainability').innerHTML = respiratoryExplainabilityHTML;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
