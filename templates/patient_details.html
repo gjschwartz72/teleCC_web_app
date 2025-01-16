@@ -6,6 +6,8 @@
     <title>Individual Patient Details</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    
     <style>
         .info-box {
             border: 2px solid black;
@@ -75,20 +77,66 @@
         .explainability-table tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 35% 25%; /* First column takes 25%, second column takes the remaining space */
+            grid-template-rows: auto 40%; /* First row auto-sizes, second row takes 40% of the viewport height */
+
+
+            gap: .5%; /* Add spacing between grid items */
+            padding: .5%; /* Add padding around the grid */
+
+            box-sizing: border-box;
+            border: 2px dashed red; /* Outline the grid container */
+        }
+        #septicShock {
+            grid-column: 1 / 2; /* First column */
+            grid-row: 1 / 3;    /* Span two rows */
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: left;
+            align-items: left;
+        }
+
+        .explainability-table {
+            grid-column: 2 / 3; /* Second column */
+            grid-row: 1 / 2;    /* First row */
+            margin: 0;
+            padding: 0;
+            height: auto;
+            overflow: auto;
+        }
+
+        .chart-container {
+            grid-column: 2 / 3; /* Second column */
+            grid-row: 2 / 3;    /* Second row */
+            margin: 0;
+            padding: 0;
+            height: auto;
+            overflow: auto;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
-    <div id="patientDetails">
+
         <div class="input-section">
             <label for="patientIDInput">Enter Patient ID:</label>
             <input type="number" id="patientIDInput" placeholder="Patient ID">
             <button onclick="submitPatientID()">Submit</button>
         </div>
 
-        <div class="tabs">
-            <button class="tab-button" onclick="openTab('septicShock')">Septic Shock</button>
-        </div>
-
+    <div id="patientDetails" class="grid-layout">
+        <!-- First Column: Spans two rows -->
         <div id="septicShock" class="tab-content">
             <div class="info-box">
                 <div class="score-box" id="septicShockScore"></div>
@@ -102,9 +150,13 @@
                     <div id="protocolContent"></div>
                 </div>
             </div>
-
+        </div> <!-- #septicShock -->
+    
+        <!-- Second Column, First Row -->
+        <div id="variableContributions">
             <h3>Variable Contributions to the Score</h3>
-            <table class="explainability-table"><thead>
+            <table class="explainability-table">
+                <thead>
                     <tr>
                         <th>Variable</th>
                         <th>Contribution</th>
@@ -112,11 +164,20 @@
                 </thead>
                 <tbody id="explainabilityTableBody"></tbody>
             </table>
-            </table>
-        </div>
-    </div>
+        </div> <!-- #variableContributions -->
+    
+        <!-- Second Column, Second Row -->
+        <div id="chartContainer" class="chart-container">
+            <h3>Score History</h3>
+            <canvas id="scoreHistoryChart"></canvas>
+        </div> <!-- #chartContainer -->
+    </div> <!-- #patientDetails -->
+    
 
-    <script>
+    <script type = "module">
+        import { loadPatientDetails } from './static/js/loadPatientDetails.js';
+        import { plotScoreHistory } from './static/js/plotScoreHistory.js';
+
         function openTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.style.display = 'none';
@@ -133,62 +194,8 @@
             }
         }
 
-        function loadPatientDetails(patientID) {
-            $.ajax({
-                url: `/get_patient_details/${patientID}`,
-                method: 'GET',
-                success: function(data) {
-                    // Update Septic Shock Information Box
-                    const scoreBox = document.getElementById('septicShockScore');
-                    scoreBox.className = 'score-box';
-                    switch (data.septic_shock_class.toLowerCase()) {
-                        case 'low':
-                            scoreBox.style.backgroundColor = 'white';
-                            scoreBox.style.color = 'black';
-                            break;
-                        case 'moderate':
-                            scoreBox.style.backgroundColor = '#30547C';
-                            scoreBox.style.color = 'white';
-                            break;
-                        case 'critical':
-                            scoreBox.style.backgroundColor = '#b33329';
-                            scoreBox.style.color = 'white';
-                            break;
-                        default:
-                            scoreBox.style.backgroundColor = '#d9534f'; // Default color
-                            scoreBox.style.color = 'white';
-                    }
-                    document.getElementById('septicShockScore').textContent = `${data.septic_shock_score}`;
-                    document.getElementById('septicShockClass').textContent = data.septic_shock_class;
-                    document.getElementById('septicShockDate').textContent = data.prediction_datetime;
-                    document.getElementById('septicShockPatientInfo').textContent = `Patient: ${data.patient_name}, Room ${data.room}`;
-
-                    const protocolContent = data.septic_shock_protocol.split('\n').map(line => `<p>• ${line}</p>`).join('');
-                    document.querySelector('.protocol').innerHTML = `<p><strong>Protocol:</strong></p>${protocolContent}`;
-
-                    // Update Explainability Table
-                    const explainabilityData = data.septic_shock_expl;
-                    const tableBody = document.getElementById('explainabilityTableBody');
-                    tableBody.innerHTML = '';
-
-                    // Add positive contributions
-                    ['pos_1', 'pos_2', 'pos_3'].forEach(key => {
-                        if (explainabilityData[key]) {
-                            const row = `<tr><td>${explainabilityData[key][0]}</td><td>${explainabilityData[key][1]}</td></tr>`;
-                            tableBody.innerHTML += row;
-                        }
-                    });
-
-                    // Add negative contributions
-                    ['neg_1', 'neg_2', 'neg_3'].forEach(key => {
-                        if (explainabilityData[key]) {
-                            const row = `<tr><td>${explainabilityData[key][0]}</td><td>${explainabilityData[key][1]}</td></tr>`;
-                            tableBody.innerHTML += row;
-                        }
-                    });
-                }
-            });
-        }
+        // Expose the function to the global scope
+        window.submitPatientID = submitPatientID;
     </script>
 </body>
 </html>
