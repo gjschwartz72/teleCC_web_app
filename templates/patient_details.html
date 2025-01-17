@@ -9,16 +9,82 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     
     <style>
+        html, body {
+            height: 100%; 
+			width: 100%;
+			/* This sets the space that the cells are partioned in. width and height in the .grid_container 
+			will be relative to this */
+            margin: .1%; /* Remove any default margin to avoid spacing issues */
+            padding: 0;
+        }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: 1fr 1fr; 
+            grid-template-areas: 
+                "protocol explainablity"
+                "protocol histPlot"; 
+
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+
+            gap: 0px 0px; /* Add spacing between grid items */
+
+        }
+
+        /* 
+        #############################################
+        ###  Protocol 
+        ############################################# 
+        */
+        .protocol-container {
+            grid-area: protocol;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            outline: 1px solid red; /* Use this to show individual grid cell borders */
+            background-color: lightblue;
+            height: 100%;
+
+        }
+
         .info-box {
             border: 2px solid black;
             padding: 20px;
-            margin: 20px auto;
+            margin: 0; 
             background-color: #fff;
             border-radius: 10px;
-            width: 45%;
+            width: 100%;
             display: inline-block;
             vertical-align: top;
             font-family: Arial, sans-serif;
+        }
+        .info-text {
+            display: inline-block;
+            vertical-align: top;
+            padding-left: 20px;
+            
+        }
+        .info-text p {
+            margin: 5px 0;
+            font-size: 1.2em;
+        }
+        .protocol {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 0;
+            font-size: 1em;
+            list-style-type: disc;
+            height: 400px;
+        }
+        .protocol p {
+            margin: 5px 0;
+            padding-left: 15px;
         }
         .score-box {
             font-size: 2.5em;
@@ -34,34 +100,17 @@
             margin: 0 auto;
             display: inline-block;
         }
-        .info-text {
-            display: inline-block;
-            vertical-align: top;
-            padding-left: 20px;
-            width: calc(100% - 140px);
-        }
-        .info-text p {
-            margin: 5px 0;
-            font-size: 1.2em;
-        }
-        .protocol {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            padding: 10px;
-            margin-top: 20px;
-            font-size: 1em;
-            list-style-type: disc;
-        }
-        .protocol p {
-            margin: 5px 0;
-            padding-left: 15px;
-        }
+
+        /* 
+        #############################################
+        ###  Explainablity Table 
+        ############################################# 
+        */        
         .explainability-table {
             border-collapse: collapse;
-            width: 50%;
+            width: 100%;
             display: inline-block;
-            margin-left: 5%;
+            margin-left: 0%;
             vertical-align: top;
         }
         .explainability-table th, .explainability-table td {
@@ -78,100 +127,98 @@
             background-color: #f2f2f2;
         }
 
-
-        .grid-layout {
-            display: grid;
-            grid-template-columns: 35% 25%; /* First column takes 25%, second column takes the remaining space */
-            grid-template-rows: auto 40%; /* First row auto-sizes, second row takes 40% of the viewport height */
-
-
-            gap: .5%; /* Add spacing between grid items */
-            padding: .5%; /* Add padding around the grid */
-
-            box-sizing: border-box;
-            border: 2px dashed red; /* Outline the grid container */
-        }
-        #septicShock {
-            grid-column: 1 / 2; /* First column */
-            grid-row: 1 / 3;    /* Span two rows */
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: left;
-            align-items: left;
-        }
-
         .explainability-table {
-            grid-column: 2 / 3; /* Second column */
-            grid-row: 1 / 2;    /* First row */
-            margin: 0;
-            padding: 0;
-            height: auto;
-            overflow: auto;
+            grid-area: explainablity;
+            /* align-items: center; */
+            justify-content: center;
+
+            outline: 1px solid red; /* Use this to show individual grid cell borders */
+            background-color: lightblue;
         }
 
-        .chart-container {
-            grid-column: 2 / 3; /* Second column */
-            grid-row: 2 / 3;    /* Second row */
-            margin: 0;
-            padding: 0;
-            height: auto;
-            overflow: auto;
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
+                /* 
+        #############################################
+        ###  Score History
+        ############################################# 
+        */   
+        .score-history {
+            grid-area: histPlot;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            outline: 1px solid red; /* Use this to show individual grid cell borders */
+            background-color: lightblue;
+            height: 100%; /* Increase height */
+            width: 100%;    /* Use a larger width relative to the container */
+            
         }
+        .chart-container {
+            width: 95%; /* Slightly reduce width to avoid overflow */
+            height: 95%; /* Slightly reduce height for padding */
+            display: flex;
+            flex-direction: column; /* Stack chart title and canvas vertically */
+            align-items: center;
+            justify-content: flex-start; /* Start content at the top */
+        }
+
+        #scoreHistoryChart {
+            width: 100%; /* Fill container width */
+            height: 100%; /* Fill container height */
+        }       
     </style>
 </head>
 <body>
 
-        <div class="input-section">
-            <label for="patientIDInput">Enter Patient ID:</label>
-            <input type="number" id="patientIDInput" placeholder="Patient ID">
-            <button onclick="submitPatientID()">Submit</button>
-        </div>
+<div class="input-section">
+    <label for="patientIDInput">Enter Patient ID:</label>
+    <input type="number" id="patientIDInput" placeholder="Patient ID" value="1">
+    <button onclick="submitPatientID()">Submit</button>
+</div>
 
-    <div id="patientDetails" class="grid-layout">
-        <!-- First Column: Spans two rows -->
-        <div id="septicShock" class="tab-content">
+<div class="grid-layout">
+
+    <div class="protocol-container">
+        <div id="info-box">
             <div class="info-box">
                 <div class="score-box" id="septicShockScore"></div>
+
                 <div class="info-text">
                     <p><strong id="septicShockClass"></strong></p>
                     <p>As of <span id="septicShockDate"></span></p>
                     <p id="septicShockPatientInfo"></p>
                 </div>
+
                 <div class="protocol">
                     <p><strong>Protocol:</strong></p>
                     <div id="protocolContent"></div>
                 </div>
             </div>
-        </div> <!-- #septicShock -->
-    
-        <!-- Second Column, First Row -->
-        <div id="variableContributions">
-            <h3>Variable Contributions to the Score</h3>
-            <table class="explainability-table">
-                <thead>
-                    <tr>
-                        <th>Variable</th>
-                        <th>Contribution</th>
-                    </tr>
-                </thead>
-                <tbody id="explainabilityTableBody"></tbody>
-            </table>
-        </div> <!-- #variableContributions -->
-    
-        <!-- Second Column, Second Row -->
+        </div>
+
+    </div>
+
+    <div class="explainability-table">
+        <h3>Variable Contributions to the Score</h3>
+        <table class="explainability-table">
+            <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Contribution</th>
+                </tr>
+            </thead>
+            <tbody id="explainabilityTableBody"></tbody>
+        </table>  
+    </div>
+
+    <div class="score-history">
         <div id="chartContainer" class="chart-container">
             <h3>Score History</h3>
             <canvas id="scoreHistoryChart"></canvas>
         </div> <!-- #chartContainer -->
-    </div> <!-- #patientDetails -->
+    </div> <!-- .score-history -->
+
+</div>    
     
 
     <script type = "module">
