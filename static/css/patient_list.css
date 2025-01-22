@@ -8,7 +8,7 @@ body {
 }
 
 /* Container Styling */
-.container {
+.patient-list-container {
     max-width: 800px;
     margin: 0 auto;
     text-align: left;
@@ -48,7 +48,7 @@ button:hover {
 }
 
 /* Table Styling */
-table {
+.patientTable {
     width: 100%;
     border-collapse: collapse;
     margin: 20px 0;
@@ -57,17 +57,17 @@ table {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-th, td {
+.patientTable th, .patientTable td {
     border: 1px solid #ddd;
     padding: 2px;
 }
 
-th {
+.patientTable th {
     background-color: #f4f4f9;
     color: #333;
 }
 
-tr:hover {
+.patientTable tr:hover {
     background-color: #f1f1f1;
 }
 
@@ -88,28 +88,23 @@ tr:hover {
 }
 
 /* Table Titles */
-h1, h2 {
+.patientTable h1, .patientTable h2 {
     font-size: 1.5em;
     color: #208d5a;
     margin-bottom: 10px;
 }
 
-.trend-icon {
-    font-size: 2.2em; /* Adjust font size as needed */
-    font-weight: bold; /* Make arrows bold */
-    text-align: center; /* Center-align the arrows if necessary */
-}
-
-th[colspan="2"] {
+.patientTable th[colspan="2"] {
     text-align: center;
 }
 
-.trend-icon {
-    font-size: 1.2em;
-    font-weight: bold;
+.patient-list-trend-icon {
+    font-size: 1.2em; /* Adjust font size as needed */
+    font-weight: bold; /* Make arrows bold */
+    text-align: left; /* Center-align the arrows if necessary */
 }
 
-.dropdown select {
+.patient-list-dropdown select {
     font-size: 1em; /* Match text size */
     height: auto; /* Adjust height to fit content */
     padding: 2px 5px; /* Minimal padding */
@@ -122,7 +117,7 @@ th[colspan="2"] {
     display: inline-block; /* Ensure it doesn't expand unnecessarily */
 }
 
-.dropdown {
+.patient-list-dropdown {
     position: relative;
     display: inline-block;
 }

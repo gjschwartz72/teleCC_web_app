@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient_list.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="patient-list-container">
+        <div class="patient-list-header">
+            <h3 style="display: inline;">
+                Station: {{ station_name }} &#8211;
+                Last Updated: {{ patients[0].prediction_datetime.strftime('%m-%d-%Y %I:%M %p') }}
+            </h3>
+            <div class="patient-list-dropdown" style="float: right;">
+                    <select onchange="changeStation(this.value)">
+                        <option value="">Select a Station</option>
+                        {% for station in stations %} 
+                            <option value="{{ station.station_number }}">{{ station.station_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+        <table id="patientTable" class="patientTable">
+            <thead>
+                <tr>
+                    <th rowspan="2">Patient Name</th>
+                    <th rowspan="2">Room</th>
+                    <th colspan="2">Septic Shock</th>
+                    <th colspan="2">Respiratory Shock</th>
+                </tr>
+                <tr>
+                    <th>Level</th>
+                    <th>2-h Trend</th>
+                    <th>Level</th>
+                    <th>2-h Trend</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr ondblclick="loadPatientDetails({{ patient.patientID }})" data-patient-id="{{ patient.patientID }}">
+                    <td>{{ patient.patientName }}</td>
+                    <td>{{ patient.room }}</td>
+                    <td class="{{ 'low' if patient.septic_shock_class == 1 else 'moderate' if patient.septic_shock_class == 2 else 'critical' }}">
+                        {{ 'Low' if patient.septic_shock_class == 1 else 'Moderate' if patient.septic_shock_class == 2 else 'Critical' }}
+                    </td>
+                    <td class="patient-list-trend-icon">
+                        {{ '&#8597;' | safe if patient.septic_shock_trend == 1 else '&#8593;' | safe if patient.septic_shock_trend == 2 else '&#8595;' | safe}}
+                    </td>
+                    <td class="{{ 'low' if patient.respiratory_class == 1 else 'moderate' if patient.respiratory_class == 2 else 'critical' }}">
+                        {{ 'Low' if patient.respiratory_class == 1 else 'Moderate' if patient.respiratory_class == 2 else 'Critical' }}
+                    </td>
+                    <td class="patient-list-trend-icon">
+                        {{ '&#8597;' | safe if patient.respiratory_trend == 1 else '&#8593;' | safe if patient.respiratory_trend == 2 else '&#8595;' | safe}}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+     <script>
+        function loadPatientDetails(patientID) {
+            console.log(`Patient Selected: ${patientID}`);
+        }
+            
+
+        function changeStation(stationNumber) {
+            if (stationNumber) {
+                window.location.href = `/load_data/${stationNumber}`;
+            }
+        }
+    </script>
+</body>
+</html>

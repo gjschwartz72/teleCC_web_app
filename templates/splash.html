@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Splash Page</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
 </head>
 <body>
     <div class="container">
@@ -31,7 +31,7 @@
                 return;
             }
 
-            window.location.href = 'http://localhost:5000/load_data/' + stationId
+            window.location.href = 'http://localhost:5000/test_patient_list/' + stationId
 
         }
     </script>

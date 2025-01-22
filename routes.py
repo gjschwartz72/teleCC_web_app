@@ -4,6 +4,7 @@ from orm_models import Patient_telecc_state, Patient_telecc_history, Station_loo
 from forms import StationSelectionForm
 from get_patient_details_json import get_patient_details_json
 
+
 # Cache for storing loaded data
 cache = {}
 
@@ -25,8 +26,8 @@ def splash():
 
     return render_template("splash.html", form=form)
 
-@app.route('/load_data/<int:station_id>')
-def load_data(station_id):
+@app.route('/load_data_v1/<int:station_id>')
+def load_data_v1(station_id):
     #station_id = request.args.get('station_id')
     # Handle the station_id as needed
 
@@ -50,12 +51,53 @@ def load_data(station_id):
         prediction_datetime = prediction_datetime
     )
 
-    
-    return f"Loading data for station: {station_id}, {len(station_list)}"
+@app.route('/test_patient_list/<int:station_id>')
+def test_patient_list(station_id):
+    return render_template("patient_list.html", stations = Station_lookup.query.all(), initial_station_id = station_id)
 
 @app.route("/testing", methods = ['GET', 'POST'])
 def test():
     return render_template("patient_details.html")
+
+@app.route('/load_data/<int:station_id>')
+def load_data(station_id):
+    # Query the station name
+    station = Station_lookup.query.filter_by(station_number=station_id).first()
+    if not station:
+        return jsonify({"error": "Station not found"}), 404
+    station_name = station.station_name
+
+    # Query the list of patients
+    station_list = Patient_telecc_state.query.filter_by(station_number=station_id).all()
+    if station_list:
+        prediction_datetime = station_list[0].prediction_datetime.strftime('%m-%d-%Y %I:%M %p')
+        station_list_sorted = sorted(station_list, key=lambda p: p.patientName.split()[-1])
+    else:
+        prediction_datetime = None
+        station_list_sorted = []
+
+    # Convert patient data to JSON-serializable format
+    patients_json = [
+        {
+            "patientID": patient.patientID,
+            "patientName": patient.patientName,
+            "room": patient.room,
+            "septic_shock_class": patient.septic_shock_class,
+            "septic_shock_trend": patient.septic_shock_trend,
+            "respiratory_class": patient.respiratory_class,
+            "respiratory_trend": patient.respiratory_trend,
+        }
+        for patient in station_list_sorted
+    ]
+
+    # Return JSON response
+    return jsonify({
+        "station_name": station_name,
+        "last_updated": prediction_datetime,
+        "patients": patients_json
+    })
+
+
 
 
 @app.route('/get_patient_details/<int:patient_id>', methods=['GET'])
@@ -63,7 +105,5 @@ def get_patient_details(patient_id):
     """
     Endpoint to fetch detailed information about a specific patient.
     """
-    print("Here I AM!")
     response_data = get_patient_details_json(patient_id)
-    print("I've got the goods :-)")
     return (response_data.json)

@@ -4,25 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient List</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient_list.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <div class="patient-list-container">
+        <div class="patient-list-header">
             <h3 style="display: inline;">
-                Station: {{ station_name }} &#8211;
-                Last Updated: {{ patients[0].prediction_datetime.strftime('%m-%d-%Y %I:%M %p') }}
+                Station: <span id="stationName"></span> &#8211;
+                Last Updated: <span id="lastUpdated"></span>
             </h3>
-            <div class="dropdown" style="float: right;">
-                    <select onchange="changeStation(this.value)">
-                        <option value="">Select a Station</option>
-                        {% for station in stations %} 
-                            <option value="{{ station.station_number }}">{{ station.station_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-        <table id="patientTable">
+            <div class="patient-list-dropdown" style="float: right;">
+                <select id="stationSelect">
+                    <option value="">Select a Station</option>
+                    {% for station in stations %} 
+                        <option value="{{ station.station_number }}">{{ station.station_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <table id="patientTable" class="patientTable">
             <thead>
                 <tr>
                     <th rowspan="2">Patient Name</th>
@@ -38,90 +39,89 @@
                 </tr>
             </thead>
             <tbody>
-                {% for patient in patients %}
-                <tr onclick="loadPatientDetails({{ patient.patientID }})">
-                    <td>{{ patient.patientName }}</td>
-                    <td>{{ patient.room }}</td>
-                    <td class="{{ 'low' if patient.septic_shock_class == 0 else 'moderate' if patient.septic_shock_class == 1 else 'critical' }}">
-                        {{ 'Low' if patient.septic_shock_class == 0 else 'Moderate' if patient.septic_shock_class == 1 else 'Critical' }}
-                    </td>
-                    <td class="trend-icon">
-                        {{ '&#8597;' | safe if patient.septic_shock_trend == 0 else '&#8593;' | safe if patient.septic_shock_trend == 1 else '&#8595;' | safe}}
-                    </td>
-                    <td class="{{ 'low' if patient.respiratory_class == 0 else 'moderate' if patient.respiratory_class == 1 else 'critical' }}">
-                        {{ 'Low' if patient.respiratory_class == 0 else 'Moderate' if patient.respiratory_class == 1 else 'Critical' }}
-                    </td>
-                    <td class="trend-icon">
-                        {{ '&#8597;' | safe if patient.respiratory_trend == 0 else '&#8593;' | safe if patient.respiratory_trend == 1 else '&#8595;' | safe}}
-                    </td>
-                </tr>
-                {% endfor %}
+                <!-- Table rows will be dynamically generated -->
             </tbody>
         </table>
 
-        <h2>Patient Histories</h2>
-        <table id="historiesTable">
-            <thead>
-                <tr>
-                    <th>Datetime</th>
-                    <th>Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- AJAX Populated -->
-            </tbody>
-        </table>
-
-        <h2>Explainability Values</h2>
-        <table id="explainabilityTable">
-            <thead>
-                <tr>
-                    <th>Field Name</th>
-                    <th>Positive</th>
-                    <th>Negative</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- AJAX Populated -->
-            </tbody>
-        </table>
-    </div>
-
-    <script>
-        function loadPatientDetails(patientID) {
-            $.ajax({
-                url: `/get_patient_details/${patientID}`,
-                method: 'GET',
-                success: function(data) {
-                    // Update histories table
-                    let historiesHTML = '';
-                    data.histories.forEach(history => {
-                        historiesHTML += `<tr>
-                            <td>${new Date(history.datetime).toLocaleString()}</td>
-                            <td>${history.value}</td>
-                        </tr>`;
-                    });
-                    $('#historiesTable tbody').html(historiesHTML);
-
-                    // Update explainability table
-                    let explainabilityHTML = '';
-                    data.explainability_values.forEach(expl => {
-                        explainabilityHTML += `<tr>
-                            <td>${expl.field_name}</td>
-                            <td>${expl.expl_pos}</td>
-                            <td>${expl.expl_neg}</td>
-                        </tr>`;
-                    });
-                    $('#explainabilityTable tbody').html(explainabilityHTML);
-                }
-            });
-        }
-
-        function changeStation(stationNumber) {
-            if (stationNumber) {
-                window.location.href = `/load_data/${stationNumber}`;
+        <script>
+            function loadPatientDetails(patientID) {
+                console.log(`Patient Selected: ${patientID}`);
             }
-        }
-    </script>
+
+            function fetchStationData(stationNumber) {
+                $.ajax({
+                    url: `/load_data/${stationNumber}`,
+                    method: 'GET',
+                    success: function(response) {
+                        // Update station metadata
+                        document.getElementById('stationName').textContent = response.station_name;
+                        document.getElementById('lastUpdated').textContent = response.last_updated;
+
+                        // Populate the table
+                        populateTable(response.patients);
+
+                        // Automatically select the first patient
+                        if (response.patients.length > 0) {
+                            loadPatientDetails(response.patients[0].patientID);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching station data:', error);
+                    }
+                });
+            }
+
+            function populateTable(patients) {
+                const tbody = document.getElementById('patientTable').querySelector('tbody');
+                tbody.innerHTML = '';
+
+                patients.forEach(patient => {
+                    const row = document.createElement('tr');
+                    row.setAttribute('ondblclick', `loadPatientDetails(${patient.patientID})`);
+                    row.innerHTML = `
+                        <td>${patient.patientName}</td>
+                        <td>${patient.room}</td>
+                        <td class="${patient.septic_shock_class === 1 ? 'low' : patient.septic_shock_class === 2 ? 'moderate' : 'critical'}">
+                            ${patient.septic_shock_class === 1 ? 'Low' : patient.septic_shock_class === 2 ? 'Moderate' : 'Critical'}
+                        </td>
+                        <td class="patient-list-trend-icon">
+                            ${patient.septic_shock_trend === 1 ? '&#8597;' : patient.septic_shock_trend === 2 ? '&#8593;' : '&#8595;'}
+                        </td>
+                        <td class="${patient.respiratory_class === 1 ? 'low' : patient.respiratory_class === 2 ? 'moderate' : 'critical'}">
+                            ${patient.respiratory_class === 1 ? 'Low' : patient.respiratory_class === 2 ? 'Moderate' : 'Critical'}
+                        </td>
+                        <td class="patient-list-trend-icon">
+                            ${patient.respiratory_trend === 1 ? '&#8597;' : patient.respiratory_trend === 2 ? '&#8593;' : '&#8595;'}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            $(document).ready(function() {
+                // Use the station ID passed to the template
+                const stationID = {{ initial_station_id | tojson }};
+                if (stationID) {
+                    fetchStationData(stationID); // Trigger the table update with the initial station ID
+                }
+
+                // Fetch initial station data
+                const initialStation = new URLSearchParams(window.location.search).get('station') || '';
+                if (initialStation) {
+                    fetchStationData(initialStation);
+                }
+
+
+                // Set up change listener for station dropdown
+                $('#stationSelect').on('change', function() {
+                    const stationNumber = this.value;
+                    
+                    if (stationNumber) {
+                        fetchStationData(stationNumber);
+                    }
+                });
+            });
+        </script>
+    </div>
 </body>
 </html>

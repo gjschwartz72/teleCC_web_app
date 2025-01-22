@@ -1,0 +1,25 @@
+html, body {
+    /* Assume 1920 X 1080 resolution is  */
+    height: 400pt; 
+    width: 600pt;
+    /* This sets the space that the cells are partioned in. width and height in the .grid_container 
+    will be relative to this */
+    margin: 0%; /* Remove any default margin to avoid spacing issues */
+    padding: 0;
+}
+.grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    grid-template-rows: 1fr 1fr; 
+    grid-template-areas: 
+        "protocol explainablity"
+        "protocol histPlot"; 
+
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+
+    gap: 0px 0px; /* Add spacing between grid items */
+
+}
