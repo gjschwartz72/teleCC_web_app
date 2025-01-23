@@ -1,0 +1,28 @@
+.tabs {
+    grid-area: tabs;
+    display: flex;
+    margin-bottom: 0px;
+    margin-top: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.tab {
+    padding: 10px 20px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #f8f9fa; /* Light gray background */
+    border: 1px solid #ccc;
+    border-bottom: none; /* Align with border-bottom of .tabs */
+    transition: background-color 0.3s ease;
+}
+
+.tab:hover {
+    background-color: #e9ecef; /* Slightly darker gray on hover */
+}
+
+.tab.active {
+    background-color: #e2dcdc; /* White background for active tab */
+    font-weight: bold;
+    border-top: 3px solid #007bff; /* Highlight active tab with a blue line */
+    border-bottom: 1px solid #ffffff; /* Seamless border for active tab */
+}

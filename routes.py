@@ -26,6 +26,10 @@ def splash():
 
     return render_template("splash.html", form=form)
 
+@app.route("/teleCC_patients/<int:station_id>", methods = ["GET", "POST"])
+def teleCC_patients(station_id):
+    return render_template("teleCC_patients.html", initial_station_id = station_id, stations = Station_lookup.query.all())
+
 @app.route('/load_data_v1/<int:station_id>')
 def load_data_v1(station_id):
     #station_id = request.args.get('station_id')
@@ -57,10 +61,20 @@ def test_patient_list(station_id):
 
 @app.route("/testing", methods = ['GET', 'POST'])
 def test():
-    return render_template("patient_details.html")
+    return render_template("teleCC_patients.html", initial_station_id = 123, stations = Station_lookup.query.all())
+
+
 
 @app.route('/load_data/<int:station_id>')
 def load_data(station_id):
+    '''
+    Returns JSON of:
+     station_name: The station Name
+     last_update: The last model update per database state table.
+     patients: The list of patients in the station ICU.
+
+    Returned data is per the ORM model queries.
+    '''
     # Query the station name
     station = Station_lookup.query.filter_by(station_number=station_id).first()
     if not station:
@@ -104,6 +118,8 @@ def load_data(station_id):
 def get_patient_details(patient_id):
     """
     Endpoint to fetch detailed information about a specific patient.
+
+
     """
     response_data = get_patient_details_json(patient_id)
     return (response_data.json)

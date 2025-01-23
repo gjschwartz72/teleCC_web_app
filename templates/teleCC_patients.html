@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/explainability_table.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/score_history.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/patient_list.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tabs.css') }}">
 </head>
 <body>
 
@@ -26,26 +27,73 @@
     <!-- ##################################################### -->
     <!-- #### Patient List -->
     <!-- ##################################################### -->
-    <div class="<div class="patient-list-container">
-
-    </div>"
+    <div class="patient-list-container">
+        <div class="patient-list-header">
+            <h3 style="display: inline;">
+                Station: <span id="stationName"></span> &#8211;
+                Last Updated: <span id="lastUpdated"></span>
+            </h3>
+            <div class="patient-list-dropdown" style="float: right;">
+                <select id="stationSelect">
+                    <option value="">Select a Station</option>
+                    {% for station in stations %} 
+                        <option value="{{ station.station_number }}">{{ station.station_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <table id="patientTable" class="patientTable">
+            <thead>
+                <tr>
+                    <th rowspan="2">Patient Name</th>
+                    <th rowspan="2">Room</th>
+                    <th colspan="2">Septic Shock</th>
+                    <th colspan="2">Respiratory Shock</th>
+                </tr>
+                <tr>
+                    <th>Level</th>
+                    <th>2-h Trend</th>
+                    <th>Level</th>
+                    <th>2-h Trend</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be dynamically generated -->
+            </tbody>
+        </table>
+    </div> <!-- .patient-list-container -->
 
     <!-- ##################################################### -->
     <!-- #### Protocol -->
     <!-- ##################################################### -->
+    <div class="tabs">
+        <!-- NOTE: use of 'septic_shock' and 'respiratory' are required key words -->
+        <div class="tab active" id="tab-septic_shock" onclick="switchTab('septic_shock')">Septic Shock</div>
+        <div class="tab" id="tab-respiratory" onclick="switchTab('respiratory')">Respiratory Distress</div>
+    </div>
+
+    <!-- ##################################################### -->
+    <!-- #### Protocol -->
+    <!-- ##################################################### -->
+     <!--
+    septicShockScore -> modelScore
+    septicShockClass -> modelClass
+    septicShockDate -> modelDate
+    septicShockPatientInfo -> patientInfo
+     -->
     <div class="protocol-container">
         
         <div class="info-box">
             
-            <div class="model-title"><h3>Septic Shock</h3></div>
+            <div class="model-title"><p id="modelTitle">Septic Shock</p></div>
             <div class="score-info-container">
                 
-                <div class="score-box" id="septicShockScore"></div>
+                <div class="score-box" id="modelScore"></div>
 
                 <div class="info-text">
-                    <p><strong id="septicShockClass"></strong></p>
-                    <p>As of <span id="septicShockDate"></span></p>
-                    <p id="septicShockPatientInfo"></p>
+                    <p><strong id="modelClass"></strong></p>
+                    <p>As of <span id="modelDate"></span></p>
+                    <p id="patientInfo"></p>
                 </div>
             </div>
 
@@ -83,8 +131,11 @@
 </div>    
 
     <script type = "module">
-        import { loadPatientDetails } from './static/js/loadPatientDetails.js';
-        import { plotScoreHistory } from './static/js/plotScoreHistory.js';
+        // import { loadPatientDetails } from './static/js/loadPatientDetails.js';
+        // import { plotScoreHistory } from './static/js/plotScoreHistory.js';
+        import { loadPatientDetails } from "{{ url_for('static', filename='js/loadPatientDetails.js') }}";
+        import { plotScoreHistory } from "{{ url_for('static', filename='js/plotScoreHistory.js') }}";
+
 
         function openTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -92,6 +143,13 @@
             });
             document.getElementById(tabName).style.display = 'block';
         }
+
+        // Expose the function to the global scope
+        window.submitPatientID = submitPatientID;
+        window.loadPatientDetails = loadPatientDetails;
+        window.plotScoreHistory = plotScoreHistory;
+        window.switchTab = switchTab;
+
 
         function submitPatientID() {
             const patientID = document.getElementById('patientIDInput').value;
@@ -102,8 +160,99 @@
             }
         }
 
-        // Expose the function to the global scope
-        window.submitPatientID = submitPatientID;
+
+        // ***********************************************
+        // **** Functions for patient list
+        // ***********************************************
+        // function loadPatientDetails(patientID) {
+        //         console.log(`Patient Selected: ${patientID}`);
+        //     }
+
+            function fetchStationData(stationNumber) {
+                $.ajax({
+                    url: `/load_data/${stationNumber}`,
+                    method: 'GET',
+                    success: function(response) {
+                        // Update station metadata
+                        document.getElementById('stationName').textContent = response.station_name;
+                        document.getElementById('lastUpdated').textContent = response.last_updated;
+
+                        // Populate the table
+                        populateTable(response.patients);
+
+                        // Automatically select the first patient
+                        if (response.patients.length > 0) {
+                            loadPatientDetails(response.patients[0].patientID);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching station data:', error);
+                    }
+                });
+            }
+
+            function populateTable(patients) {
+                const tbody = document.getElementById('patientTable').querySelector('tbody');
+                tbody.innerHTML = '';
+
+                patients.forEach(patient => {
+                    const row = document.createElement('tr');
+                    row.setAttribute('ondblclick', `loadPatientDetails(${patient.patientID})`);
+                    row.innerHTML = `
+                        <td>${patient.patientName}</td>
+                        <td>${patient.room}</td>
+                        <td class="${patient.septic_shock_class === 1 ? 'low' : patient.septic_shock_class === 2 ? 'moderate' : 'critical'}">
+                            ${patient.septic_shock_class === 1 ? 'Low' : patient.septic_shock_class === 2 ? 'Moderate' : 'Critical'}
+                        </td>
+                        <td class="patient-list-trend-icon">
+                            ${patient.septic_shock_trend === 1 ? '&#8597;' : patient.septic_shock_trend === 2 ? '&#8593;' : '&#8595;'}
+                        </td>
+                        <td class="${patient.respiratory_class === 1 ? 'low' : patient.respiratory_class === 2 ? 'moderate' : 'critical'}">
+                            ${patient.respiratory_class === 1 ? 'Low' : patient.respiratory_class === 2 ? 'Moderate' : 'Critical'}
+                        </td>
+                        <td class="patient-list-trend-icon">
+                            ${patient.respiratory_trend === 1 ? '&#8597;' : patient.respiratory_trend === 2 ? '&#8593;' : '&#8595;'}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            function switchTab(disease) {
+                // Remove the 'active' class from all tabs
+                console.log(`Switching tab to: ${disease}`);
+
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+
+                // Add the 'active' class to the selected tab
+                document.querySelector(`#tab-${disease}`).classList.add('active');
+
+                // Log the active tab for debugging
+                console.log("Disease (switchTab): " + disease);
+
+                loadPatientDetails(activePatientID, disease);
+            }
+
+
+        $(document).ready(function() {
+                // Use the station ID passed to the template
+                const stationID = {{ initial_station_id | tojson }};
+                if (stationID) {
+                    fetchStationData(stationID); // Trigger the table update with the initial station ID
+                }
+
+
+                // Set up change listener for station dropdown
+                $('#stationSelect').on('change', function() {
+                    const stationNumber = this.value;
+                    
+                    if (stationNumber) {
+                        fetchStationData(stationNumber);
+                    }
+                });
+            });
     </script>
 </body>
 </html>

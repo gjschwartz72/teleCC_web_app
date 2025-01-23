@@ -1,6 +1,6 @@
 html, body {
     /* Assume 1920 X 1080 resolution is  */
-    height: 400pt; 
+    height: 600pt; 
     width: 600pt;
     /* This sets the space that the cells are partioned in. width and height in the .grid_container 
     will be relative to this */
@@ -10,8 +10,10 @@ html, body {
 .grid-layout {
     display: grid;
     grid-template-columns: 1fr 1fr; 
-    grid-template-rows: 1fr 1fr; 
+    grid-template-rows: 10fr 1fr 10fr 10fr; 
     grid-template-areas: 
+        "patient_list patient_list"
+        "tabs tabs"
         "protocol explainablity"
         "protocol histPlot"; 
 

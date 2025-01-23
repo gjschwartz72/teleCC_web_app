@@ -42,6 +42,7 @@
                 <!-- Table rows will be dynamically generated -->
             </tbody>
         </table>
+    </div> <!-- .patient-list-container -->
 
         <script>
             function loadPatientDetails(patientID) {
@@ -105,12 +106,6 @@
                     fetchStationData(stationID); // Trigger the table update with the initial station ID
                 }
 
-                // Fetch initial station data
-                const initialStation = new URLSearchParams(window.location.search).get('station') || '';
-                if (initialStation) {
-                    fetchStationData(initialStation);
-                }
-
 
                 // Set up change listener for station dropdown
                 $('#stationSelect').on('change', function() {
@@ -122,6 +117,5 @@
                 });
             });
         </script>
-    </div>
-</body>
+    </body>
 </html>

@@ -1,21 +1,15 @@
-/* General Body Styling */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
-    text-align: center;
-    padding: 20px;
-}
-
 /* Container Styling */
 .patient-list-container {
-    max-width: 800px;
+    grid-area: patient_list;
+    width: 600pt;
+    height: 200pt;
     margin: 0 auto;
     text-align: left;
     padding: 20px;
     background: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+    outline: 1pt solid black; /* Use this to show individual grid cell borders */
+    overflow-y: auto;
 }
 
 /* Station List Styling */
