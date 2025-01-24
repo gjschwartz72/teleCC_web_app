@@ -63,7 +63,8 @@ export function plotScoreHistory(ctx, historyData, predictionDate) {
                             let timeLabel = `${hour === 0 ? 12 : hour > 12 ? hour - 12 : hour}:00 ${hour >= 12 ? 'PM' : 'AM'}`;
             
                             // Add a date boundary if the time is midnight (00:00)
-                            if (hour === 0 && minutes === 0) {
+                            // Currently dissabled by 1 == 2
+                            if (hour === 0 && minutes === 0 && 1 == 2) {
                                 const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase(); // JAN, FEB, etc.
                                 const day = String(date.getDate()).padStart(2, '0'); // Ensure 2-digit day
                                 timeLabel += ` (${month}-${day})`;  // This is appending, can just set to = instead of +=
